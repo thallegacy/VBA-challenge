@@ -1,0 +1,142 @@
+Sub stockmarket()
+
+'Declare the worksheet variables
+Dim ws As Worksheet
+Dim tablesheet As Worksheet
+ 
+ 
+'Set the worksheet variable
+Set tablesheet = Worksheets(1)
+
+'Create a loop to go through each sheet
+For Each ws In Worksheets
+
+'Declare variables for stock value results within the worksheet loop
+Dim Ticker As String
+Dim Yearlychange As Double
+Dim Percentchange As Double
+Dim Totalstockvolume As Double
+Dim Initialopen As Double
+
+'Declare loop assisting variables
+Dim LastRows As Long
+Dim Counter As Long
+Dim Counter2 As Long
+
+'Declare bonus variables stock value results
+Dim Minrange As Range
+Dim Minvalue As Double
+Dim Minrow As Long
+Dim Maxrange As Range
+Dim Maxvalue As Double
+Dim Maxrow As Long
+Dim Volrange As Range
+Dim Volvalue As Double
+Dim Volrow As Long
+
+'Set the initial counter to print summary table
+Counter = 2
+'Set the initial counter to print yearly and percent change values
+Counter2 = 2
+'Set the initial stock result values
+Ticker = ""
+Yearlychange = 0
+Percentchange = 0
+Totalstockvolume = 0
+
+'Define a variable of the last row for iteration through each sheet
+LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+
+'Create the iteration loop that will happen within in sheet to get the values
+For R = 2 To LastRow
+  'Create if statement to check when a ticker changes to a new value on each sheet
+    If ws.Cells(R + 1, 1).Value <> ws.Cells(R, 1).Value Then
+        
+       'Print header rows for each sheet
+         ws.Cells(1, 9).Value = "Ticker"
+         ws.Cells(1, 10).Value = "Yearly Change"
+         ws.Cells(1, 11).Value = "Percent Change"
+         ws.Cells(1, 12).Value = "Total Stock Volume"
+         ws.Cells(1, 16).Value = "Ticker"
+         ws.Cells(1, 17).Value = "Value"
+         
+        'Print bonus greatest columns headers for each sheet
+         ws.Cells(2, 15).Value = "Greatest % Increase"
+         ws.Cells(3, 15).Value = "Greatest % Decrease"
+         ws.Cells(4, 15).Value = "Greatest Total Volume"
+        
+        'Set the result values for Ticker, Yearchange, Totalstockvalue
+        Ticker = ws.Cells(R, 1).Value
+        Initialopen = ws.Cells(Counter2, 3)
+        Yearlychange = ws.Cells(R, 6).Value - Initialopen
+        Totalstockvolume = Totalstockvolume + Cells(R, 7).Value
+        
+        'Create if statement to check and solve for dividing by 0 for Percentchange
+        If Initialopen <> 0 Then
+        Percentchange = (Yearlychange / Initialopen)
+        Else
+        Percentchange = 0
+        End If
+        
+       'Print the values for Ticker, Yearlychange, Percentchange, Totalstockvalue
+        ws.Cells(Counter, 9).Value = Ticker
+        ws.Cells(Counter, 10).Value = Yearlychange
+        ws.Cells(Counter, 11).Value = Percentchange
+        ws.Cells(Counter, 11).NumberFormat = "0.00%"
+        ws.Cells(Counter, 12).Value = Totalstockvolume
+        
+        'Create if statement for conditional formatting of yearlychange
+        If ws.Cells(Counter, 10).Value >= 0 Then
+            ws.Cells(Counter, 10).Interior.ColorIndex = 4
+           Else
+            ws.Cells(Counter, 10).Interior.ColorIndex = 3
+        End If
+        
+        'Reset values to control next iterations at the change of the ticker point
+        Counter = Counter + 1
+        Counter2 = R + 1
+        Totalstockvolume = 0
+    Else
+        'Continue calculating value for Totalstockvalue when not a different ticker
+        Totalstockvolume = Totalstockvolume + Cells(R, 7).Value
+    
+    End If
+    
+    
+Next R
+
+       'Define the range to look for the Greatest Percent Increase and its Ticker(Max of Percentchange)
+        Set Maxrange = ws.Range("K2:K" & Counter)
+        Maxvalue = Application.WorksheetFunction.Max(Maxrange)
+        Maxrow = Application.Match(Maxvalue, Maxrange, 0)
+       'Print Greatest Percent Increase and its Ticker
+        ws.Cells(2, 16).Value = ws.Cells(Maxrow + 1, 9).Value
+        ws.Cells(2, 17).Value = Maxvalue
+        ws.Cells(2, 17).NumberFormat = "0.00%"
+
+        'Define the range to look for the Greatest Percent Decrease and its Ticker(Min of Percentchange)
+        Set Minrange = ws.Range("K2:K" & Counter)
+        Minvalue = Application.WorksheetFunction.Min(Minrange)
+        Minrow = Application.Match(Minvalue, Minrange, 0)
+        'Print Greatest Percent Decrease and its Ticker
+        ws.Cells(3, 16).Value = ws.Cells(Minrow + 1, 9).Value
+        ws.Cells(3, 17).Value = Minvalue
+        ws.Cells(3, 17).NumberFormat = "0.00%"
+
+        'Define the range to look for the Greatest Total Stock Volume and its Ticker(Max of totalstockvalue)
+        Set Volrange = ws.Range("L2:L" & Counter)
+        Volvalue = Application.WorksheetFunction.Max(Volrange)
+        Volrow = Application.Match(Volvalue, Volrange, 0)
+        'Print Greatest Total Stock Value and its Ticker
+        ws.Cells(4, 16).Value = ws.Cells(Volrow + 1, 9).Value
+        ws.Cells(4, 17).Value = Volvalue
+
+        'Auto adjust columns
+        ws.Columns("I:L").AutoFit
+        ws.Columns("O:Q").AutoFit
+        ws.Columns("N").ColumnWidth = 1
+Next ws
+
+
+End Sub
+
